@@ -20,12 +20,6 @@ class Account:
     def declare(self, out: TextIO):
         out.write("!Account\n")
         out.write(f"N{self.label}\n")
-        out.writelines(
-            [
-                "!Account",
-                "N" + self.label,
-            ]
-        )
         if self.is_income:
             out.write("I\n")
         out.write("^\n\n")
@@ -56,6 +50,7 @@ class Transfer:
         out.write(f"D{self.transaction_date.strftime('%Y-%m-%d')}\n")
         out.write(f"T{self.amount}\n")
         out.write(f"M{self.memo}\n")
+        out.write(f"L{self.asset_account.label}\n")
         for split in self.splits:
             split.declare(out)
         out.write("^\n\n")
@@ -66,6 +61,7 @@ def declare_accounts_and_transactions(transfers: List[Transfer], out: TextIO):
     # first, declare the necessary accounts
     out.write("!Type:Cat\n")
     accounts = {s.target_account for t in transfers for s in t.splits}
+    accounts.update({t.asset_account for t in transfers})
     for account in accounts:
         account.declare(out)
 
