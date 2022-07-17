@@ -20,3 +20,8 @@ This is pretty much how I invoke it:
 ```bash
 python -m kbc2qif infile.csv "Assets:Current Assets:Checking" Income:UNPROCESSED Expenses:UNPROCESSED
 ```
+
+
+## Requirements
+
+Python 3.7+, currently no other dependencies.
