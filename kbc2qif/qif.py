@@ -4,6 +4,7 @@ files.
 """
 
 import decimal
+from collections import defaultdict
 from dataclasses import dataclass
 from datetime import date
 from typing import Optional, List, TextIO
@@ -50,7 +51,6 @@ class Transfer:
         out.write(f"D{self.transaction_date.strftime('%Y-%m-%d')}\n")
         out.write(f"T{self.amount}\n")
         out.write(f"M{self.memo}\n")
-        out.write(f"L{self.asset_account.label}\n")
         for split in self.splits:
             split.declare(out)
         out.write("^\n\n")
@@ -58,14 +58,17 @@ class Transfer:
 
 def declare_accounts_and_transactions(transfers: List[Transfer], out: TextIO):
 
-    # first, declare the necessary accounts
-    out.write("!Type:Cat\n")
-    accounts = {s.target_account for t in transfers for s in t.splits}
-    accounts.update({t.asset_account for t in transfers})
-    for account in accounts:
+    # sort by asset account
+    by_account = defaultdict(list)
+    for t in transfers:
+        by_account[t.asset_account].append(t)
+
+    for account, ts in by_account.items():
+        # Declare the asset account
+        out.write("!Type:Cat\n")
         account.declare(out)
 
-    # Then proceed with transactions
-    out.write("!Type:Bank\n")
-    for transfer in transfers:
-        transfer.declare(out)
+        # Then proceed with transactions
+        out.write("!Type:Bank\n")
+        for t in ts:
+            t.declare(out)
